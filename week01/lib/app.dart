@@ -32,3 +32,4 @@ class HomeScreen extends StatelessWidget {
     );
   }
 }
+// Task 3: Campus Companion shell verified
