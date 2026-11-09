@@ -1,14 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../data/sample_events.dart';
+import '../widgets/event_card.dart';
 
-/// The events feed.
-// TODO(lab): Task 3 —
-//   a. use ListView.builder with an EventCard per event (padding 8);
-//   b. wrap it in a LayoutBuilder: when constraints.maxWidth >= 600 use a
-//      GridView.builder with SliverGridDelegateWithMaxCrossAxisExtent
-//      (maxCrossAxisExtent 480, mainAxisExtent 200) instead.
-// test/screens/events_screen_test.dart is the contract.
+/// The events feed. Responsive: displays a ListView on narrow screens,
+/// and switches to a GridView when the screen width >= 600.
 class EventsScreen extends StatelessWidget {
   const EventsScreen({super.key});
 
@@ -16,10 +12,28 @@ class EventsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      children: [
-        for (final event in sampleEvents) ListTile(title: Text(event.title)),
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth >= wideBreakpoint) {
+          return GridView.builder(
+            padding: const EdgeInsets.all(8),
+            gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+              maxCrossAxisExtent: 480,
+              mainAxisExtent: 200,
+            ),
+            itemCount: sampleEvents.length,
+            itemBuilder: (context, index) =>
+                EventCard(event: sampleEvents[index]),
+          );
+        }
+
+        return ListView.builder(
+          padding: const EdgeInsets.all(8),
+          itemCount: sampleEvents.length,
+          itemBuilder: (context, index) =>
+              EventCard(event: sampleEvents[index]),
+        );
+      },
     );
   }
 }
