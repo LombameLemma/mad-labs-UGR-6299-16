@@ -35,11 +35,79 @@ class NoteCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // TODO(lab): Task 6 — build the card described in lab/README.md,
-    // Task 6, at 360 px and at 900 px wide. Choose the widgets yourself.
-    // At Checkpoint B you draw your widget tree and say which widget stops
-    // the title overflowing.
-    return Text(title);
+    final theme = Theme.of(context);
+
+    final titleRow = Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: Text(
+            title,
+            style: theme.textTheme.titleMedium,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        if (pinned) ...[
+          const SizedBox(width: 8),
+          const Icon(Icons.push_pin, size: 20),
+        ],
+      ],
+    );
+
+    final bodyWidget = Text(
+      body,
+      style: theme.textTheme.bodyMedium,
+      maxLines: 3,
+      overflow: TextOverflow.ellipsis,
+    );
+
+    final footer = Row(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        Expanded(
+          child: Wrap(
+            spacing: 4,
+            runSpacing: 4,
+            children: [
+              for (final tag in tags)
+                Chip(
+                  label: Text(tag),
+                  visualDensity: VisualDensity.compact,
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          editedLabel(edited),
+          style: theme.textTheme.labelSmall,
+        ),
+      ],
+    );
+
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: maxCardWidth),
+        child: Card(
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                titleRow,
+                const SizedBox(height: 8),
+                bodyWidget,
+                const SizedBox(height: 8),
+                footer,
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 
