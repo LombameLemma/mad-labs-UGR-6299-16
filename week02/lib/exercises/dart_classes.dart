@@ -1,43 +1,38 @@
 // Week 2 Dart exercises — classes, inheritance, sealed types, mixins,
 // generics, extensions and async.
-//
-// Each section has a description of what the tests expect. Implement the
-// missing pieces; run: flutter test test/exercises/dart_classes_test.dart
-// The worked examples from the lecture are in lecture_examples.dart.
-//
-// ignore_for_file: unused_import
+// Run the tests with: flutter test test/exercises
+
 import 'dart:async';
 
 // ---------------------------------------------------------------------------
-// Exercise 1 — Student: named-parameter constructor (firstName, lastName,
-// id), a named constructor Student.guest() ('Guest', '', 'GUEST'), a
-// `fullName` getter ('First Last', or just first name when last is empty)
-// and toString() → 'Student(<id>, <fullName>)'.
+// Exercise 1 — a class with constructors, a getter and toString
 // ---------------------------------------------------------------------------
 
 class Student {
   Student({required this.firstName, required this.lastName, required this.id});
 
   /// Named constructor for an anonymous visitor.
-  // TODO(lab): use an initialiser list (`: firstName = 'Guest', ...`)
-  Student.guest() : this(firstName: '?', lastName: '?', id: '?');
+  Student.guest()
+      : firstName = 'Guest',
+        lastName = '',
+        id = 'GUEST';
 
   final String firstName;
   final String lastName;
   final String id;
 
-  String get fullName => throw UnimplementedError(); // TODO(lab)
+  String get fullName =>
+      lastName.isEmpty ? firstName : '$firstName $lastName';
 
-  // TODO(lab): override toString
+  @override
+  String toString() => 'Student($id, $fullName)';
 }
 
 // ---------------------------------------------------------------------------
-// Exercise 2 — Shapes: make Shape a *sealed* class; Circle(radius),
-// Rectangle(width, height), Square(side) extends Rectangle. Implement
-// area() with an exhaustive switch expression using object patterns.
+// Exercise 2 — sealed class hierarchy with exhaustive pattern matching
 // ---------------------------------------------------------------------------
 
-abstract class Shape {
+sealed class Shape {
   const Shape();
 }
 
@@ -56,65 +51,88 @@ class Square extends Rectangle {
   const Square(double side) : super(side, side);
 }
 
-double area(Shape shape) {
-  // TODO(lab)
-  throw UnimplementedError();
+/// Area of any shape. Because [Shape] is sealed, the switch must handle
+/// every subtype or the compiler complains.
+double area(Shape shape) => switch (shape) {
+      Circle(:final radius) => 3.141592653589793 * radius * radius,
+      Rectangle(:final width, :final height) => width * height,
+    };
+
+// ---------------------------------------------------------------------------
+// Exercise 3 (Extra task) — mixins
+// ---------------------------------------------------------------------------
+
+mixin Logger {
+  final List<String> logs = [];
+
+  void log(String message) => logs.add('[$runtimeType] $message');
 }
 
-// ---------------------------------------------------------------------------
-// Exercise 3 (Extra task) — Mixins: `Logger` keeps a List<String> logs
-// and has log(String) that adds '[$runtimeType] $message'. `Greeter`
-// requires a `String get name` and provides greet() → 'Hello, I am $name'.
-// Robot uses both; introduce() greets, logs the line and returns it.
-// ---------------------------------------------------------------------------
+mixin Greeter {
+  String get name;
 
-// TODO(lab): mixin Logger { ... }
-// TODO(lab): mixin Greeter { ... }
+  String greet() => 'Hello, I am $name';
+}
 
-class Robot {
+class Robot with Logger, Greeter {
   Robot(this.name);
+
+  @override
   final String name;
 
-  List<String> get logs => throw UnimplementedError();
-  String introduce() => throw UnimplementedError();
+  String introduce() {
+    final line = greet();
+    log(line);
+    return line;
+  }
 }
 
 // ---------------------------------------------------------------------------
-// Exercise 4 — Stack<T>: isEmpty, length, push(T), pop() (throws StateError
-// when empty), peek() → T? (null when empty).
+// Exercise 4 — a generic class
 // ---------------------------------------------------------------------------
 
 class Stack<T> {
-  // TODO(lab)
-  bool get isEmpty => throw UnimplementedError();
-  int get length => throw UnimplementedError();
-  void push(T item) => throw UnimplementedError();
-  T pop() => throw UnimplementedError();
-  T? peek() => throw UnimplementedError();
+  final List<T> _items = [];
+
+  bool get isEmpty => _items.isEmpty;
+  int get length => _items.length;
+
+  void push(T item) => _items.add(item);
+
+  /// Removes and returns the top item. Throws [StateError] when empty.
+  T pop() {
+    if (_items.isEmpty) throw StateError('pop on empty stack');
+    return _items.removeLast();
+  }
+
+  T? peek() => _items.isEmpty ? null : _items.last;
 }
 
 // ---------------------------------------------------------------------------
-// Exercise 5 (Extra task) — Extension StringX on String: capitalize()
-// ('flutter' → 'Flutter', '' → '') and titleCase() ('hello world' →
-// 'Hello World').
+// Exercise 5 (Extra task) — extension methods
 // ---------------------------------------------------------------------------
 
 extension StringX on String {
-  String capitalize() => throw UnimplementedError(); // TODO(lab)
-  String titleCase() => throw UnimplementedError(); // TODO(lab)
+  /// 'flutter' → 'Flutter'; '' → ''
+  String capitalize() =>
+      isEmpty ? this : '${this[0].toUpperCase()}${substring(1)}';
+
+  /// 'hello world' → 'Hello World'
+  String titleCase() => split(' ').map((w) => w.capitalize()).join(' ');
 }
 
 // ---------------------------------------------------------------------------
-// Exercise 6 — Wallet with a custom exception. deposit(amount) throws
-// ArgumentError for amount <= 0. withdraw(amount) throws
-// InsufficientFundsException(requested, available) when amount > balance.
-// tryWithdraw(amount) returns false instead of throwing that exception.
+// Exercise 6 — custom exceptions and error handling
 // ---------------------------------------------------------------------------
 
 class InsufficientFundsException implements Exception {
   InsufficientFundsException(this.requested, this.available);
   final int requested;
   final int available;
+
+  @override
+  String toString() =>
+      'InsufficientFundsException: requested $requested, have $available';
 }
 
 class Wallet {
@@ -124,37 +142,49 @@ class Wallet {
   int get balance => _balance;
 
   void deposit(int amount) {
-    // TODO(lab)
+    if (amount <= 0) throw ArgumentError.value(amount, 'amount', 'must be > 0');
     _balance += amount;
   }
 
   void withdraw(int amount) {
-    // TODO(lab)
+    if (amount > _balance) {
+      throw InsufficientFundsException(amount, _balance);
+    }
     _balance -= amount;
   }
 
-  bool tryWithdraw(int amount) => throw UnimplementedError(); // TODO(lab)
+  /// Tries to withdraw; returns true on success, false when funds are
+  /// insufficient. Any other error is rethrown.
+  bool tryWithdraw(int amount) {
+    try {
+      withdraw(amount);
+      return true;
+    } on InsufficientFundsException {
+      return false;
+    }
+  }
 }
 
 // ---------------------------------------------------------------------------
-// Exercise 7 — Futures. fetchGreeting waits `delay` then returns
-// 'Hello, $name'. fetchAllGreetings fetches all names concurrently
-// (Future.wait) preserving order. fetchGreetingOrThrow throws ArgumentError
-// for an empty name, otherwise behaves like fetchGreeting.
+// Exercise 7 — Futures and async/await
 // ---------------------------------------------------------------------------
 
+/// Simulates a network call: resolves with a greeting after [delay].
 Future<String> fetchGreeting(String name,
     {Duration delay = const Duration(milliseconds: 10)}) async {
-  // TODO(lab)
-  throw UnimplementedError();
+  await Future<void>.delayed(delay);
+  return 'Hello, $name';
 }
 
+/// Fetches greetings for everyone *concurrently* and returns them in the
+/// same order as [names].
 Future<List<String>> fetchAllGreetings(List<String> names) {
-  // TODO(lab)
-  throw UnimplementedError();
+  return Future.wait(names.map(fetchGreeting));
 }
 
+/// Like [fetchGreeting] but fails for an empty name. Callers await it in a
+/// try/catch.
 Future<String> fetchGreetingOrThrow(String name) async {
-  // TODO(lab)
-  throw UnimplementedError();
+  if (name.isEmpty) throw ArgumentError('name must not be empty');
+  return fetchGreeting(name);
 }
