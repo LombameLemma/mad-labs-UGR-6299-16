@@ -16,9 +16,6 @@ enum Venue {
 
 /// A campus event. Immutable: every field is `final`, and changes are made
 /// with [copyWith], which returns a new instance.
-// TODO(lab): Task 1 — implement isUpcoming, copyWith, ==, hashCode and
-// toString. The tests in test/models/event_test.dart describe the exact
-// behaviour.
 @immutable
 class Event {
   const Event({
@@ -39,7 +36,7 @@ class Event {
 
   /// True when the event starts in the future relative to [now]
   /// (defaults to the current time — injectable for tests).
-  bool isUpcoming({DateTime? now}) => throw UnimplementedError();
+  bool isUpcoming({DateTime? now}) => start.isAfter(now ?? DateTime.now());
 
   Event copyWith({
     String? id,
@@ -49,10 +46,30 @@ class Event {
     String? description,
     bool? isFree,
   }) {
-    throw UnimplementedError();
+    return Event(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      start: start ?? this.start,
+      venue: venue ?? this.venue,
+      description: description ?? this.description,
+      isFree: isFree ?? this.isFree,
+    );
   }
 
-  // TODO(lab): override == and hashCode so two events with the same field
-  // values are equal (use Object.hash), and toString →
-  // 'Event($id, $title, ${venue.label}, $start)'.
+  @override
+  bool operator ==(Object other) =>
+      other is Event &&
+      other.id == id &&
+      other.title == title &&
+      other.start == start &&
+      other.venue == venue &&
+      other.description == description &&
+      other.isFree == isFree;
+
+  @override
+  int get hashCode =>
+      Object.hash(id, title, start, venue, description, isFree);
+
+  @override
+  String toString() => 'Event($id, $title, ${venue.label}, $start)';
 }
