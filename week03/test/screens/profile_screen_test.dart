@@ -26,9 +26,20 @@ void main() {
     expect(find.text('Orientation: landscape'), findsOneWidget);
   });
 
-  // TODO(lab): Task 4, step 1 — write this test BEFORE you build the
-  // screen, run it and watch it fail. Pump ProfileScreen inside
-  // SizedBox(width: 320), with a MediaQuery that reports a 320 x 640
-  // portrait phone. Expect no exception (an overflow is an exception in a
-  // test), and expect the stat label 'Posts' to end inside the 320 px.
+  testWidgets('fits a 320-pixel-wide phone without overflow', (tester) async {
+    await tester.pumpWidget(
+      const MediaQuery(
+        data: MediaQueryData(size: Size(320, 640)),
+        child: MaterialApp(
+          home: Scaffold(
+            body: SizedBox(width: 320, child: ProfileScreen()),
+          ),
+        ),
+      ),
+    );
+
+    expect(tester.takeException(), isNull);
+    expect(find.text('Posts'), findsOneWidget);
+    expect(tester.getRect(find.text('Posts')).right, lessThanOrEqualTo(320));
+  });
 }

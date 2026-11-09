@@ -18,4 +18,5 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-  # TODO(lab): Task 1 — declare the assets/images/ folder here.
+  assets:
+    - assets/images/
