@@ -24,3 +24,4 @@ void main() {
     expect(find.text('Join'), findsOneWidget);
   });
 }
+

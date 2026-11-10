@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
-/// Profile screen.
+/// Profile screen. Adapts layout based on orientation:
+/// - In portrait: single column layout with header, stats, actions, and orientation banner.
+/// - In landscape: row of two expanded columns (header on the left, details on the right).
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
@@ -28,7 +30,7 @@ class ProfileScreen extends StatelessWidget {
                 text: 'Computer Science',
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
-              TextSpan(text: ' Â· 3rd year'),
+              TextSpan(text: ' · 3rd year'),
             ],
           ),
         ),
@@ -129,7 +131,13 @@ class _StatTile extends StatelessWidget {
     final theme = Theme.of(context);
     return Column(
       children: [
-        Text(value, style: theme.textTheme.titleLarge),
+        Text(
+          value,
+          style: theme.textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 4),
         Text(label, style: theme.textTheme.labelMedium),
       ],
     );

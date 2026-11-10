@@ -46,3 +46,4 @@ class ScheduleRow extends StatelessWidget {
     );
   }
 }
+

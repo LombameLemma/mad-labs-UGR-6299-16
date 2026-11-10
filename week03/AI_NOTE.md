@@ -8,3 +8,4 @@
 
 3. What did you check yourself, and how?
    Checked layout behavior with `flutter analyze --fatal-infos` and `flutter test`. Verified responsive behavior at 320 px, 360 px, and 900 px widths.
+

@@ -40,3 +40,4 @@
    - *Error:* False. Once the preceding children exceed the row width, `Spacer` cannot prevent overflow and causes layout failure.
    - *How found:* Running the test with a 320 px container.
 5. **Fix applied:** Wrapped the course/room `Column` in `Expanded`, removed invalid `minWidth: 72`, and added 8 px spacing before `FilledButton`.
+
